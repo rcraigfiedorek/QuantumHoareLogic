@@ -1,5 +1,5 @@
-.*.aux
-.*.d
+*.aux
+*.d
 *.a
 *.cma
 *.cmi

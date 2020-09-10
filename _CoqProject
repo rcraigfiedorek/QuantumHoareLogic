@@ -1,0 +1,4 @@
+-R theories/ QuantumHoareLogic
+theories/Complex.v
+theories/Matrix.v
+theories/QNL.v

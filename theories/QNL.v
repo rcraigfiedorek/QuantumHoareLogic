@@ -1,7 +1,6 @@
 
 
-Add LoadPath "/Users/rcraigfiedorek/Documents/programs/coq/MyQuantum".
-Require Export MatrixAlt.
+Require Export QuantumHoareLogic.Matrix.
 Require Import FunctionalExtensionality.
 Require Import ProofIrrelevance.
 Require Import Setoid.

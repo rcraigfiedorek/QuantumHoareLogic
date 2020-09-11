@@ -1,4 +1,21 @@
+(** * QNL.v *)
+(** This file defines the language QNL of imperative quantum
+    programs containing no loops. The language and our reasoning
+    about it is modelled after the following 2009 paper
+    "Hoare Logic for Quantum Programs" by Mingsheng Ying
+    https://arxiv.org/abs/0906.4586.
+    
+    Our language differs from the language of that paper
+    in that:
+      * our language is defined over a fixed set of n variables
+      * there are only boolean datatypes and no integer datatypes
+      * there are no loops (and thus all programs terminate)
 
+    The main result of this file is the proof of an analogue of 
+    Proposition 7.1 from that paper. We define a weakest precondition
+    function for quantum predicates and QNL programs, and prove that it
+    is correct.
+*)
 
 Require Export QuantumHoareLogic.Matrix.
 Require Import FunctionalExtensionality.

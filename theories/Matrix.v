@@ -1,4 +1,18 @@
-(** * Matrix: Lightweight Complex Matrices *)
+(** * Matrix.v *)
+(** This file is adapted from Robert Rand's 
+    Verified Quantum Computing book
+    http://www.cs.umd.edu/~rrand/vqc/Matrix.html *)
+(** Some key differences / additions are:
+    * We use the type N of binary natural numbers rather
+      than the type nat of Peano natural numbers to parametrize
+      our matrices. This is intended to speed up computation of
+      matrix operations (especially between 2^n × 2^n matrices)
+    * We define tensor powers of matrices and vectors
+    * We take advantage of Coq's typeclasses system to define
+      and prove facts about various classes of matrices, e.g.,
+      Hermitian matrices, unitary matrices, orthogonal projectors,
+      the Loewner partial order, etc.
+*)
 
 Require Import Psatz.
 Require Import Setoid.
@@ -12,29 +26,16 @@ Require Import NArith.
 (** * Matrix Definitions and Equivalence **)
 
 Open Scope N_scope.
-
-(** We define a _matrix_ as a simple function from to nats
-    (corresponding to a row and a column) to a complex number. In many
-    contexts it would make sense to parameterize matrices over numeric
-    types, but our use case is fairly narrow, so matrices of complex
-    numbers will suffice. *)
     
 Definition Matrix (m n : N) := N -> N -> C.
 
 Notation Vector n := (Matrix n 1).
 Notation Square n := (Matrix n n).
 
-(** Note that the dimensions of the matrix aren't being used here. In
-    practice, a matrix is simply a function on any two nats. However,
-    we will used these dimensions to define equality, as well as the
-    multiplication and kronecker product operations to follow. *)
-
 Definition mat_equiv {m n : N} (A B : Matrix m n) : Prop :=
   forall i j, i < m -> j < n -> A i j = B i j.
 
 Infix "==" := mat_equiv (at level 80).
-
-(** Let's prove some important notions about matrix equality. *)
 
 Lemma mat_equiv_refl : forall {m n} (A : Matrix m n), A == A.
 Proof. split; eauto. Qed.
@@ -56,8 +57,6 @@ Add Parametric Relation m n : (Matrix m n) (@mat_equiv m n)
   transitivity proved by mat_equiv_trans
     as mat_equiv_rel.
 
-(** Now we can use matrix equivalence to rewrite! *)
-
 Lemma mat_equiv_trans2 : forall {m n} (A B C : Matrix m n),
     A == B -> A == C -> B == C.
 Proof.
@@ -78,7 +77,6 @@ Ltac meq := apply mat_equiv_entries_eq; try nomega.
 Close Scope N_scope.
 Open Scope C_scope.
 
-(** Because we will use these so often, it is good to have them in matrix scope. *)
 Notation "m =? n" := (N.eqb m n) (at level 70) : matrix_scope.
 Notation "m <? n" := (N.ltb m n) (at level 70) : matrix_scope.
 Notation "m <=? n" := (N.leb m n) (at level 70) : matrix_scope.
@@ -115,7 +113,6 @@ Qed.
 
 Lemma Mplus_comm : forall {m n} (A B : Matrix m n), A .+ B == B .+ A.
 Proof.
-  (* WORKED IN CLASS *)
   intros m n A B i j Hi Hj.
   unfold Mplus.
   lca.
@@ -123,16 +120,13 @@ Qed.
   
 Lemma Mplus_0_l : forall {m n} (A : Matrix m n), Zero m n .+ A == A. 
 Proof.
-  (* WORKED IN CLASS *)
   intros m n A i j Hi Hj.
   unfold Zero, Mplus.
   lca.
 Qed.
   
-(* Let's try one without unfolding definitions. *)
 Lemma Mplus_0_r : forall {m n} (A : Matrix m n), A .+ Zero m n == A. 
 Proof.
-  (* WORKED IN CLASS *)
   intros m n A.
   rewrite Mplus_comm.
   apply Mplus_0_l.
@@ -141,7 +135,6 @@ Qed.
 Lemma Mplus_compat : forall {m n} (A B A' B' : Matrix m n),
     A == A' -> B == B' -> A .+ B == A' .+ B'.
 Proof.
-  (* WORKED IN CLASS *)
   intros m n A B A' B' HA HB.
   intros i j Hi Hj.
   unfold Mplus.
@@ -167,18 +160,13 @@ Proof. intros. unfold Mminus. rewrite H; rewrite H0; easy. Qed.
 
 
 
-(** Now let's return to that lemma... *)
 
 Lemma Mplus3 : forall {m n} (A B C : Matrix m n), (B .+ A) .+ C == A .+ (B .+ C).
 Proof.
-  (* WORKED IN CLASS *)
   intros m n A B C.
   rewrite (Mplus_comm B A).
   apply Mplus_assoc.
 Qed.
-
-(** Mscale is similarly compatible with [==], but requires a slightly
-    different lemma: *)
 
 Lemma Mscale_compat : forall {m n} (c c' : C) (A A' : Matrix m n),
     c = c' -> A == A' -> c .* A == c' .* A'.
@@ -194,8 +182,6 @@ Add Parametric Morphism m n : (@Mscale m n)
 Proof.
   intros; apply Mscale_compat; easy.
 Qed.
-
-(** Let's move on to the more interesting matrix functions: *)
 
 Definition trace {n : N} (A : Square n) : C := 
   Csum (fun x => A x x) n.
@@ -215,16 +201,11 @@ Definition transpose {m n} (A : Matrix m n) : Matrix n m :=
 Definition adjoint {m n} (A : Matrix m n) : Matrix n m := 
   fun x y => (A y x)^*.
 
-(** We can derive the dot product and its complex analogue, the 
-    _inner product_, from matrix multiplication. *)
-
 Definition dot {n : N} (A : Vector n) (B : Vector n) : C :=
   Mmult (transpose A) B 0 0.
 
 Definition inner_product {n} (u v : Vector n) : C := 
   Mmult (adjoint u) (v) 0 0.
-
-(** The _outer product_ produces a square matrix from two vectors. *)
 
 Definition outer_product {n} (u v : Vector n) : Square n := 
   Mmult u (adjoint v).
@@ -330,8 +311,6 @@ Qed.
 (* ################################################################# *)
 (** * Matrix Automation *)
 
-(** A useful tactic for solving A == B for concrete A, B *)
-
 Ltac solve_end :=
   match goal with
   | H : lt _ O |- _ => apply Nat.nlt_0_r in H; contradict H
@@ -344,7 +323,6 @@ Ltac by_cell :=
 
 Ltac lma := by_cell; lca.
 
-(** Let's test it! *)                                                     
 Lemma scale0_concrete : 0 .* I 10 == Zero _ _.
 Proof. lma. Qed.
 
@@ -1020,6 +998,9 @@ Proof.
 Admitted.
 (* to prove this, need theorem that PDMs are lin combs of outer products *)
 (* to prove that, need Spectral Theorem *)
+(* Spectral Theorem requires the fundamental theorem of algebra, which is
+  beyond the scope of this project unless we depend on another library 
+  for definitions and facts regarding the complex numbers *)
 
 Instance zero_lle_psd : forall {n} A `{PositiveSemidef n A},
   Zero n n ⊑ A.
@@ -1212,5 +1193,3 @@ Qed.
 *)
   
 
-  
-(* Thu Aug 1 13:45:52 EDT 2019 *)

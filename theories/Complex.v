@@ -1,4 +1,7 @@
 (** * Complex: Complex Numbers in Coq *)
+(** * This file is largely borrowed from Robert Rand's
+      Verified Quantum Computing book
+      http://www.cs.umd.edu/~rrand/vqc/Complex.html *)
 
 Require Export Reals.
 Require Export Psatz.
@@ -10,11 +13,7 @@ Notation "√ n" := (sqrt n) (at level 20) : R_scope.
 (* ################################################################# *)
 (** * Basic Definitions *)
 
-(** A complex number is simply a pair of reals *)
-
 Definition C : Type := R * R.
-
-(** We give names to three generally useful constants *)
 
 Definition C0 : C := (0,0).
 Definition C1 : C := (1,0).
@@ -24,17 +23,10 @@ Definition RtoC (r : R) : C := (r,0).
 
 Coercion RtoC : R >-> C.
 
-(** We can define plus component-wise *)
-
 Definition Cplus (c1 c2 : C) : C := (fst c1 + fst c2, snd c1 + snd c2).
-
-(** And then define minus and opp together: *)
 
 Definition Copp (c : C) : C := (- fst c, - snd c).
 Definition Cminus (c1 c2 : C) : C := Cplus c1 (Copp c2).
-
-(** Multiplication and division are a bit harder. Again, we'll define
-    division in terms of an inverse: *)
 
 Definition Cmult (c1 c2 : C) : C :=
     (fst c1 * fst c2 - snd c1 * snd c2, fst c1 * snd c2 + snd c1 * fst c2).
@@ -43,11 +35,6 @@ Definition Cinv (c : C) : C :=
   (fst c / (fst c ^ 2 + snd c ^ 2), - snd c / (fst c ^ 2 + snd c ^ 2)).
 
 Definition Cdiv (c1 c2 : C) : C := Cmult c1 (Cinv c2).
-
-(** Finally, we'll define the _norm_ (or _modulus_) of a complex
-    number. This is simply the Euclidean norm, treating c as
-    coordinates in the cartesian plane. We can define the norm in
-    terms of the norm squared: *)
 
 Definition Cnorm2 (c : C) : R := fst c ^ 2 + snd c ^ 2. 
 Definition Cnorm (c : C) : R := √ (Cnorm2 c).
@@ -64,29 +51,13 @@ Notation "/ x" := (Cinv x) : C_scope.
 Infix "/" := Cdiv : C_scope.
 
 (* ################################################################# *)
-(** * Interlude: Psatz *)
-
-(** We would like to prove that all of the field equations from the
-    previous chapter hold of complex numbers. However, we'd rather not
-    _prove_ these manually.  Instead, we will make use of the powerful
-    [lra] tactic, which we will extent to reason about complex numbers
-    in the most straightforward way possible. *)
+(** * Psatz *)
 
 Lemma c_proj_eq : forall (c1 c2 : C), 
   fst c1 = fst c2 -> snd c1 = snd c2 -> c1 = c2.
 Proof. intros. destruct c1, c2. simpl in *. subst. reflexivity. Qed.
 
 Ltac lca := eapply c_proj_eq; simpl; lra.
-
-(** [lra] (for Linear Real Arithmetic) is a member of the Psatz
-    family of tactics, which include [nra] (for Nonlinear Real
-    Arithmetic), [lia] (for Linear Integer Arithmetic) and
-    [nia]. These tactics are generally very powerful but not
-    well-understood (unlike Omega): It's hard to characterize the
-    exact set of equations these tactics can solve.
-
-    The same holds of [lca] and subsequent tactics that we will build
-    on top of [lra]. *)
 
 (* ################################################################# *)
 (** * C is a field *)
@@ -222,9 +193,6 @@ Qed.
 (* ################################################################# *)
 (** * Sums over Complex Numbers *)
 
-(** One important function we will care about when reasoning about
-    matrices in upcoming chapter is the sum of complex numbers. Let's
-    try proving a few things about these sums. *)
 
 Require Import NArith.
 
@@ -613,7 +581,3 @@ Proof. intros f n. N.induct n; intros.
 Qed.
 
 
-
-
-
-(* Thu Aug 1 13:45:52 EDT 2019 *)

@@ -1,5 +1,14 @@
+(** * ExplicitMatrices.v *)
 
-Require Export QNLAlt.
+(** This file is a work in progress intended to define
+    common quantum gates, states, and predicates, and
+    allow a user to define new ones easily as well.
+
+    The file does not currently compile
+*)
+
+
+Require Export QNL.
 Require Import FunctionalExtensionality.
 Require Import ProofIrrelevance.
 Require Import Setoid.
